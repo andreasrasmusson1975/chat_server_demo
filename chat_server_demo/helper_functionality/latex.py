@@ -440,34 +440,33 @@ class LaTeXFixer:
 
 def fix_align_environments(text: str) -> str:
     """
-    Convert LaTeX \begin{align}...\end{align} blocks to $$...$$ with \begin{aligned}...\end{aligned}.
+    Convert LaTeX \begin{align}...\end{align} and \begin{align*}...\end{align*}
+    blocks into $$...$$ with \begin{aligned}...\end{aligned}, cleaning up
+    issues that break KaTeX rendering.
 
-    This function rewrites LaTeX align environments so they render correctly in Markdown math blocks.
-    It replaces each \begin{align}...\end{align} with a display math block ($$...$$) containing
-    \begin{aligned}...\end{aligned}, which is supported by KaTeX and MathJax in Markdown renderers.
-
-    Parameters
-    ----------
-    text : str
-        Input text possibly containing LaTeX align environments.
-
-    Returns
-    -------
-    str
-        Text with all align environments converted to aligned environments inside $$...$$ blocks.
-
-    Notes
-    -----
-    - Only affects \begin{align}...\end{align} blocks; other environments are left unchanged.
-    - Useful for rendering multi-line equations in Markdown-based viewers.
+    Fixes applied:
+    - Replace align/align* with aligned.
+    - Wrap in $$ ... $$ for display math.
+    - Remove redundant dollar signs ($$ or $$$$).
+    - Insert line breaks (\\) between equations if missing.
     """
+
     def replacer(match):
         content = match.group(1)
+
+        # Remove stray '$' (common in LLM output like $$$$)
+        content = content.replace("$$$$", "").replace("$$", "")
+
+        # If multiple equations are jammed together, try to split on `) \`
+        # or `) \delta` etc. and insert proper line breaks
+        content = re.sub(r"\)\s*(\\\w+)", r") \\\\\1", content)
+
         return "$$\n\\begin{aligned}\n" + content.strip() + "\n\\end{aligned}\n$$"
 
-    # Regex matches \begin{align} ... \end{align} (dotall for multiline)
-    pattern = re.compile(r"\\begin{align}(.*?)\\end{align}", re.DOTALL)
+    # Match both align and align* environments (multiline)
+    pattern = re.compile(r"\\begin{align\*?}(.*?)\\end{align\*?}", re.DOTALL)
     return pattern.sub(replacer, text)
+
 
 
 
