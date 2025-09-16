@@ -271,7 +271,4 @@ def main():
                 get_reply_standard_mode(prompt,client)
 
 if __name__ == "__main__":
-    """
-    Entry point for the Streamlit application.
-    """
     main()
