@@ -1,0 +1,4 @@
+server:
+  host: "CHAT_SERVER_HOST"
+  port: 8000
+  api_key: "CHAT_SERVER_API_KEY"

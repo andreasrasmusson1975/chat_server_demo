@@ -1,0 +1,2 @@
+# Include all yaml files in the llm_server package and its subdirectories
+recursive-include chat_server_demo *.yaml
