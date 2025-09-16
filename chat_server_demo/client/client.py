@@ -7,6 +7,7 @@ Client for the Conversation API.
 """
 
 import requests
+from requests.exceptions import ChunkedEncodingError
 from typing import List, Dict, Generator
 from chat_server_demo.yaml_files.yaml_loading import load_chat_server_config
 import os
@@ -125,10 +126,13 @@ class ConversationClient:
             timeout=(10,600)
         ) as resp:
             resp.raise_for_status()
-            for chunk in resp.iter_content(chunk_size=8192, decode_unicode=True):
-                if chunk and "[[END]]" not in chunk:
-                    reply += chunk
-                    yield chunk
+            try:
+                for chunk in resp.iter_content(chunk_size=8192, decode_unicode=True):
+                    if chunk and "[[END]]" not in chunk:
+                        reply += chunk
+                        yield chunk
+            except ChunkedEncodingError:
+                pass
 
         # update history after stream ends
         self.history.append({"role": "user", "content": prompt})
