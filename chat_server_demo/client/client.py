@@ -125,7 +125,7 @@ class ConversationClient:
             timeout=(10,600)
         ) as resp:
             resp.raise_for_status()
-            for chunk in resp.iter_content(chunk_size=None, decode_unicode=True):
+            for chunk in resp.iter_content(chunk_size=8192, decode_unicode=True):
                 if chunk and "[[END]]" not in chunk:
                     reply += chunk
                     yield chunk
