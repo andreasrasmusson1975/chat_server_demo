@@ -127,7 +127,7 @@ class ConversationClient:
         ) as resp:
             resp.raise_for_status()
             try:
-                for chunk in resp.iter_content(chunk_size=8192, decode_unicode=True):
+                for chunk in resp.iter_content(chunk_size=64, decode_unicode=True):
                     if chunk and "[[END]]" not in chunk:
                         reply += chunk
                         yield chunk
