@@ -89,7 +89,8 @@ class ConversationClient:
                 "history": self.history,
                 "improvement": self.improvement,
                 "intermediate_steps": self.intermediate_steps
-            }
+            },
+            timeout=(10,600)
         )
         resp.raise_for_status()
         reply = resp.json()["reply"]
@@ -120,7 +121,8 @@ class ConversationClient:
                 "improvement": self.improvement,
                 "intermediate_steps": self.intermediate_steps
             },
-            stream=True
+            stream=True,
+            timeout=(10,600)
         ) as resp:
             resp.raise_for_status()
             for chunk in resp.iter_content(chunk_size=None, decode_unicode=True):
