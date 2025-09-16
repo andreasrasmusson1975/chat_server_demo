@@ -112,6 +112,13 @@ class ConversationClient:
             str: Chunks of the assistant's reply.
         """
         reply = ""
+	print("Payload:", {
+	    "prompt": prompt,
+	    "history": self.history,
+	    "improvement": self.improvement,
+	    "intermediate_steps": self.intermediate_steps
+	})
+	
         with requests.post(
             f"{self.base_url}/chat/stream",
             headers={"x-api-key": self.api_key,
