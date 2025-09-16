@@ -36,7 +36,6 @@ st.set_page_config(
 import os
 import sys
 import subprocess
-from chat_server_demo.yaml_files.yaml_loading import load_model_config, load_system_prompt
 from chat_server_demo.helper_functionality.code_fences import ensure_fenced_code
 from chat_server_demo.helper_functionality.latex import fix_latex_delimiters
 from chat_server_demo.client.client import ConversationClient
