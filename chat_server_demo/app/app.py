@@ -218,7 +218,7 @@ def main():
     Don't know what to ask? Here are some example prompts to get you started:
     - `Give an advanced exposition of general relativity theory. Don't forget to include the mathematical formulations. Use KaTeX.`
     - `Implement k-means clustering from scratch in Python with NumPy, including initialization, iterative updates, and convergence check. Follow PEP-8 and document extensively with state-of-the-art docstrings and comments where necessary. Every function must have a corresponding pytest.
-       After you've written out the code, give, for each function/class, a brief explanation of hot said function/class workds.`
+       After you've written out the code, give, for each function/class, a brief explanation of how said function/class works.`
     - `Give a mathematical definition of a Turing machine. Include an example of a simple Turing machine that recognizes the language of strings with an even number of 0s. Use KaTeX.
        Also, give an implementation of that Turing machine in C.`
     - `Give a twenty year long forecast on how societal attitudes will evolve in Sweden.`
