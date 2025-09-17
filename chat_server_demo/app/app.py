@@ -131,8 +131,8 @@ def get_reply_display_intermediate(prompt: str, client: ConversationClient) -> N
         display_text += chunk
         placeholder.markdown(fix_latex_delimiters(ensure_fenced_code(display_text)[0])[0])
     parts = display_text.split("### Revised Answer", 1)
-    if len(parts) > 1:
-        final_answer = parts[1].split("### Comments", 1)[0]
+    if len(parts) > 2:
+        final_answer = parts[2].split("### Comments", 1)[0]
     else:
         final_answer = display_text
     placeholder.markdown(fix_latex_delimiters(ensure_fenced_code(final_answer)[0])[0])
