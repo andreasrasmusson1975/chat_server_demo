@@ -135,7 +135,6 @@ def get_reply_display_intermediate(prompt: str, client: ConversationClient) -> N
         final_answer = parts[2].split("### Comments", 1)[0]
     else:
         final_answer = display_text
-    placeholder.markdown(fix_latex_delimiters(ensure_fenced_code(final_answer)[0])[0])
     st.session_state.messages.append({
         "role": "assistant", 
         "content": fix_latex_delimiters(ensure_fenced_code(final_answer)[0])[0]
