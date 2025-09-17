@@ -84,8 +84,8 @@ def get_reply_improvement_mode_no_intermediate(prompt: str, client: Conversation
             placeholder.markdown(parts[0])
         else:
             parts = parts[1].split("### Revised Answer")
-            if len(parts) > 2:
-                parts = parts[2].split("### Comments", 1)
+            if len(parts) > 1:
+                parts = parts[1].split("### Comments", 1)
                 if len(parts) == 1:
                     placeholder.markdown(fix_latex_delimiters(ensure_fenced_code(parts[0])[0])[0])
     st.session_state.messages.append({
