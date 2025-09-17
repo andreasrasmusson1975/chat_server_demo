@@ -22,6 +22,31 @@ OPEN_FENCE_RE = re.compile(r'^\s*([`~]{3,})\s*([A-Za-z0-9.+#_\-]*)\s*$')
 CLOSE_FENCE_RE = re.compile(r'^\s*([`~]{3,})\s*$')
 BACKTICKS_RUN_RE = lambda ch: re.compile(rf'{re.escape(ch)}+')
 
+SECTION_MARKERS = ("### Improvements", "### Revised Answer", "### Comments")
+ATX_HEADER_RE = re.compile(r'^[ \t]{0,3}#{3,6}[ \t]+')
+
+def _prev_nonblank_is_blank(lines, idx: int) -> bool:
+    # True if the immediately previous line exists and is blank
+    return idx > 0 and lines[idx - 1].strip() == ""
+
+def looks_like_section_boundary(lines, idx: int) -> bool:
+    """
+    Headers-only boundary detection:
+      1) Explicit section markers always count.
+      2) Otherwise, an ATX header (###..######) with a blank line before.
+    """
+    line = lines[idx].lstrip()
+
+    # 1) Your explicit section headers (strongest signal)
+    if any(line.startswith(m) for m in SECTION_MARKERS):
+        return True
+
+    # 2) Conservative ATX headings with a blank line before
+    if ATX_HEADER_RE.match(lines[idx]) and _prev_nonblank_is_blank(lines, idx):
+        return True
+
+    return False
+
 def guess_lang(code: str) -> Optional[str]:
     """
     Heuristically guess the programming or markup language of a code snippet.
@@ -194,9 +219,13 @@ def fix_code_fences(
                 closed = True
                 i += 1
                 break
+            if looks_like_section_boundary(lines, i):
+                closed = True
+                changes.append(f"Inserted missing closing fence before heading at line {i+1}")
+                # do NOT consume this line; let the outer loop handle it as prose
+                break
             code_buf.append(lines[i])
             i += 1
-
         code = "\n".join(code_buf)
 
         # Choose safe fence length (if code contains runs of the fence char)
