@@ -15,7 +15,7 @@ import struct
 from struct import pack
 import pyodbc
 from sqlalchemy import create_engine, text
-from azure.identity import AzureCliCredential
+from azure.identity import AzureCliCredential, DefaultAzureCredential
 
 # -------------------------------
 # Settings
@@ -26,7 +26,7 @@ DB_NAME = "chatserverdemo"
 # -------------------------------
 # Azure AD credential
 # -------------------------------
-credential = AzureCliCredential()
+credential = DefaultAzureCredential()
 
 
 def _get_engine(database=DB_NAME):
