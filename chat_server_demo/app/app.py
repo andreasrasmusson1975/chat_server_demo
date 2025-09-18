@@ -251,7 +251,7 @@ def main():
                 uid = register(new_username, email, hash_password(new_password))
                 db.set_admin(uid)
                 st.sidebar.success("Admin user created. Please log in.")
-                st.rerun()
+                return
 
         st.info("Please log in using the sidebar to start chatting.")
         return
