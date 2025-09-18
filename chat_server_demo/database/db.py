@@ -29,7 +29,7 @@ DB_NAME = "chatserverdemo"
 credential = AzureCliCredential()
 token = credential.get_token("https://database.windows.net/.default")
 
-def get_engine(database=DB_NAME):
+def _get_engine(database=DB_NAME):
     #token = credential.get_token("https://database.windows.net/.default")
     exptoken = b''.join(pack('<H', ord(c)) for c in token.token)
     tokenstruct = struct.pack('<I', len(exptoken)) + exptoken
