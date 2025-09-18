@@ -325,8 +325,8 @@ def main():
     # Display history (sorted)
     # ----------------------------
     for msg in sorted(st.session_state.messages, key=lambda m: m["MessageIndex"]):
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
+        with st.chat_message(msg["Role"]):
+            st.markdown(msg["Content"])
 
     # ----------------------------
     # Input + Reply
