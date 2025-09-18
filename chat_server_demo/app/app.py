@@ -228,7 +228,7 @@ def main():
 
         if st.button("Login"):
             if login(username, hash_password(password)):
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error("Invalid credentials")
 
@@ -242,7 +242,7 @@ def main():
             uid = register(new_username, email, hash_password(new_password))
             if uid:
                 st.success("User created, you are now logged in.")
-                st.experimental_rerun()
+                st.rerun()
 
         return
     st.markdown("""
