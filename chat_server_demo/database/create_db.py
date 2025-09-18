@@ -8,6 +8,8 @@ import os
 import struct
 from struct import pack
 from sqlalchemy import create_engine, text
+from azure.identity import AzureCliCredential
+
 
 # -------------------------------
 # Settings
@@ -20,7 +22,12 @@ APP_USER_SECRET_NAME = "chat-app-user-password"
 # -------------------------------
 # Azure identity
 # -------------------------------
-credential = DefaultAzureCredential()
+#credential = DefaultAzureCredential()
+
+credential = AzureCliCredential()
+token = credential.get_token("https://database.windows.net/.default")
+
+
 
 # Fetch app user password from Key Vault
 kv_uri = f"https://{KEYVAULT_NAME}.vault.azure.net/"
@@ -34,7 +41,7 @@ def to_utf16le(token: str) -> bytes:
     return b"".join(pack("<H", ord(c)) for c in token)
 
 def get_engine(database="master"):
-    token = credential.get_token("https://database.windows.net/.default")
+    #token = credential.get_token("https://database.windows.net/.default")
     exptoken = b''.join(pack('<H', ord(c)) for c in token.token)
     tokenstruct = struct.pack('<I', len(exptoken)) + exptoken
 
@@ -43,7 +50,7 @@ def get_engine(database="master"):
         f"Driver={{ODBC Driver 18 for SQL Server}};"
         f"Server=tcp:{SERVER},1433;"
         f"Database={database};"
-        f"Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
+        f"Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=30;"
     )
 
     return create_engine(
