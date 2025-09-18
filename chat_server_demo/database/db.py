@@ -151,3 +151,14 @@ def list_messages(session_id: str) -> list[dict]:
     with _get_engine().begin() as conn:
         rows = conn.execute(sql, {"sid": session_id}).fetchall()
         return [dict(r._mapping) for r in rows]
+
+
+# -------------------------------
+# Registration related
+# -------------------------------
+def count_users():
+    row = execute_sql("SELECT COUNT(*) as cnt FROM ChatLogs.Users")
+    return row[0]["cnt"]
+
+def set_admin(user_id: int):
+    execute_sql("UPDATE ChatLogs.Users SET IsAdmin = 1 WHERE UserId = ?", (user_id,))
