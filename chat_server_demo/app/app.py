@@ -73,10 +73,10 @@ def append_message(role: str, content: str, parent=None):
         st.session_state.session_id, role, content, parent
     )
     st.session_state.messages.append({
-        "Id": msg_id,
-        "role": role,
-        "content": content,
+        "Role": role,
+        "Message": content,
         "ParentMessageId": parent,
+        "MessageIndex": len(st.session_state.messages)
     })
 
 
