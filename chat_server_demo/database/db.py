@@ -31,8 +31,8 @@ credential = DefaultAzureCredential()
 
 def _get_engine(database=DB_NAME):
     token = credential.get_token("https://database.windows.net/.default")
-    exptoken = b''.join(pack('<H', ord(c)) for c in token.token)
-    tokenstruct = struct.pack('<I', len(exptoken)) + exptoken
+    rawtoken = token.token.encode("utf-16-le")
+    tokenstruct = struct.pack("<I", len(rawtoken)) + rawtoken
 
     connection_string = (
         f"mssql+pyodbc:///?odbc_connect="
@@ -40,13 +40,13 @@ def _get_engine(database=DB_NAME):
         f"Server=tcp:{SERVER},1433;"
         f"Database={database};"
         f"Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=30;"
-        f"Authentication=ActiveDirectoryAccessToken;"
     )
 
     return create_engine(
         connection_string,
         connect_args={"attrs_before": {1256: tokenstruct}},
     )
+
 
 # -------------------------------
 # User functions
