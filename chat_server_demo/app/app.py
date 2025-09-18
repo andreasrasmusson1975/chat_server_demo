@@ -52,9 +52,9 @@ def login(username, password_hash):
     uid = db.validate_user(username, password_hash)
     if uid:
         st.session_state.user_id = uid
-        st.session_state.session_id = None  # reset session on login
         return True
     return False
+
 
 def register(username, email, password_hash):
     uid = db.create_user(username, email, password_hash)
@@ -283,6 +283,9 @@ def main():
     ]
     session_ids = [s["SessionId"] for s in sessions]
 
+    if "selected_session" not in st.session_state:
+        st.session_state.selected_session = "➕ New session"
+        
     # Dropdown to select a session
     selected = st.sidebar.selectbox(
         "Select chat session",
@@ -296,8 +299,7 @@ def main():
     else:
         idx = session_labels.index(selected)
         st.session_state.session_id = session_ids[idx]
-        if "messages" not in st.session_state:
-            st.session_state.messages = db.list_messages(st.session_state.session_id)
+        st.session_state.messages = db.list_messages(st.session_state.session_id)
 
     if "client" not in st.session_state:
         st.session_state.client = ConversationClient()
