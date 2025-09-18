@@ -20,7 +20,8 @@ sql:
         Id INT IDENTITY(1,1) PRIMARY KEY,
         Username NVARCHAR(100) NOT NULL,
         Email NVARCHAR(100) NOT NULL,
-        PasswordHash NVARCHAR(200) NOT NULL
+        PasswordHash NVARCHAR(200) NOT NULL,
+        IsAdmin BIT NOT NULL DEFAULT 0
       );
 
     create_table_sessions: |
