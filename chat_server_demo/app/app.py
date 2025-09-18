@@ -282,7 +282,7 @@ def main():
         f"Session {i+1} — {s['CreatedAt']:%Y-%m-%d %H:%M}"
         for i, s in enumerate(sessions)
     ]
-    session_ids = [s["Id"] for s in sessions]
+    session_ids = [s["SessionId"] for s in sessions]
 
     # Dropdown to select a session
     selected = st.sidebar.selectbox(
