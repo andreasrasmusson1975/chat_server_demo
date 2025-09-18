@@ -313,13 +313,15 @@ def main():
         st.session_state.session_id = session_ids[idx]
         st.session_state.messages = db.list_messages(st.session_state.session_id)
 
-    if "client" not in st.session_state:
-        st.session_state.client = ConversationClient()
+    if "clients" not in st.session_state:
+        st.session_state.clients = {}
+    
+    if st.session_state.session_id not in st.session_state.clients:
+        st.session_state.clients[st.session_state.session_id] = ConversationClient()
 
-    # Always update
-    st.session_state.client.improvement = improvement_mode
-    st.session_state.client.intermediate_steps = display_intermediate
-    client = st.session_state.client
+    client = st.session_state.clients[st.session_state.session_id]
+    client.improvement = improvement_mode
+    client.intermediate_steps = display_intermediate
 
     # ----------------------------
     # Display history (sorted)
