@@ -52,6 +52,7 @@ def login(username, password_hash):
     uid = db.validate_user(username, password_hash)
     if uid:
         st.session_state.user_id = uid
+        st.session_state.username = username
         return True
     return False
 
@@ -243,7 +244,7 @@ def main():
 
     else:
         # --- Already logged in ---
-        st.sidebar.success(f"Logged in as user {st.session_state.user_id}")
+        st.sidebar.success(f"Logged in as user {st.session_state.username}")
 
         # Logout button
         if st.sidebar.button("Logout"):
