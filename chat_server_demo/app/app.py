@@ -225,7 +225,7 @@ def main():
     # ----------------------------
     # Sidebar auth controls
     # ----------------------------
-        st.sidebar.header("User Access")
+    st.sidebar.header("User Access")
 
     if "user_id" not in st.session_state:
         # --- Login form ---
