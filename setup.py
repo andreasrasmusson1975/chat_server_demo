@@ -25,6 +25,7 @@ setup(
     entry_points={
         "console_scripts": [
             "start_app = chat_server_demo.app.launcher:run",
+            "create_db = chat_server_demo.database.create_db:main"
         ]
     },
     include_package_data=True,
