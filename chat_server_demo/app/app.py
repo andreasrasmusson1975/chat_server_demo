@@ -220,30 +220,50 @@ def main():
     # ----------------------------
     # Login / Register
     # ----------------------------
-    if "user_id" not in st.session_state:
-        st.subheader("Login")
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
+        # ----------------------------
+    # Sidebar auth controls
+    # ----------------------------
+    st.sidebar.header("User Access")
 
-        if st.button("Login"):
+    if "user_id" not in st.session_state:
+        # --- Login form ---
+        st.sidebar.subheader("Login")
+        username = st.sidebar.text_input("Username", key="login_username")
+        password = st.sidebar.text_input("Password", type="password", key="login_password")
+
+        if st.sidebar.button("Login"):
             if login(username, hash_password(password)):
                 st.rerun()
             else:
-                st.error("Invalid credentials")
+                st.sidebar.error("Invalid credentials")
 
-        st.markdown("---")
-        st.subheader("Register")
-        new_username = st.text_input("New username")
-        email = st.text_input("Email")
-        new_password = st.text_input("New password", type="password")
-
-        if st.button("Register"):
-            uid = register(new_username, email, hash_password(new_password))
-            if uid:
-                st.success("User created, you are now logged in.")
-                st.rerun()
-
+        # Show only this in main area
+        st.info("Please log in using the sidebar to start chatting.")
         return
+
+    else:
+        # --- Already logged in ---
+        st.sidebar.success(f"Logged in as user {st.session_state.user_id}")
+
+        # Logout button
+        if st.sidebar.button("Logout"):
+            for key in ["user_id", "session_id", "messages", "clients", "selected_session"]:
+                if key in st.session_state:
+                    del st.session_state[key]
+            st.rerun()
+
+        # If this is the admin, show registration form
+        if st.session_state.user_id == 1:  # <- adjust logic for your admin check
+            st.sidebar.subheader("Register New User")
+            new_username = st.sidebar.text_input("New username", key="register_username")
+            email = st.sidebar.text_input("Email", key="register_email")
+            new_password = st.sidebar.text_input("New password", type="password", key="register_password")
+
+            if st.sidebar.button("Register"):
+                uid = register(new_username, email, hash_password(new_password))
+                if uid:
+                    st.sidebar.success("User created.")
+
     st.markdown("""
     This is an interactive demo of the `MPAI assistant`, a multipass answer improvement chatbot. 
     You can chat with the assistant and get responses as with any chatbot. If you enable 
