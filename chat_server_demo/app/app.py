@@ -326,7 +326,7 @@ def main():
     # ----------------------------
     for msg in sorted(st.session_state.messages, key=lambda m: m["MessageIndex"]):
         with st.chat_message(msg["Role"]):
-            st.markdown(msg["Content"])
+            st.markdown(msg["Message"])
 
     # ----------------------------
     # Input + Reply
