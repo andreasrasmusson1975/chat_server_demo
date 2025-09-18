@@ -280,8 +280,8 @@ def main():
     # ----------------------------
     sessions = db.list_sessions(st.session_state.user_id)
     session_labels = [
-        f"Session {i+1} — {s['CreatedAt']:%Y-%m-%d %H:%M}"
-        for i, s in enumerate(sessions)
+        f"Session {s['SessionId']} — {s['CreatedAt']:%Y-%m-%d %H:%M}"
+        for s in sessions
     ]
     session_ids = [s["SessionId"] for s in sessions]
 
