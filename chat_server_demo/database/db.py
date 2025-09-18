@@ -12,9 +12,11 @@ Uses Azure AD token authentication (DefaultAzureCredential) and pyodbc/SQLAlchem
 
 import os
 import struct
+from struct import pack
 import pyodbc
 from sqlalchemy import create_engine, text
 from azure.identity import AzureCliCredential
+from chat_server_demo.database.create_db import create_engine
 
 # -------------------------------
 # Settings
@@ -28,19 +30,21 @@ DB_NAME = "chatserverdemo"
 credential = AzureCliCredential()
 token = credential.get_token("https://database.windows.net/.default")
 
-def _get_token_bytes():
-    exptoken = b''.join(struct.pack('<H', ord(c)) for c in token.token)
-    return struct.pack('<I', len(exptoken)) + exptoken
-
 def _get_engine(database=DB_NAME):
-    conn_str = (
-        f"mssql+pyodbc://@{SERVER},1433/{database}"
-        "?driver=ODBC+Driver+18+for+SQL+Server"
-        "&Encrypt=yes&TrustServerCertificate=no&Connection+Timeout=30"
+    exptoken = b''.join(pack('<H', ord(c)) for c in token.token)
+    tokenstruct = struct.pack('<I', len(exptoken)) + exptoken
+
+    connection_string = (
+        f"mssql+pyodbc:///?odbc_connect="
+        f"Driver={{ODBC Driver 18 for SQL Server}};"
+        f"Server=tcp:{SERVER},1433;"
+        f"Database={database};"
+        f"Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=30;"
     )
+
     return create_engine(
-        conn_str,
-        connect_args={"attrs_before": {1256: _get_token_bytes()}},  # 1256 = SQL_COPT_SS_ACCESS_TOKEN
+        connection_string,
+        connect_args={"attrs_before": {1256: tokenstruct}},
     )
 
 # -------------------------------
