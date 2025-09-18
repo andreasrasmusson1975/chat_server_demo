@@ -39,10 +39,43 @@ import subprocess
 from chat_server_demo.helper_functionality.code_fences import ensure_fenced_code
 from chat_server_demo.helper_functionality.latex import fix_latex_delimiters
 from chat_server_demo.client.client import ConversationClient
+from chat_server_demo.database import db
+
+# ----------------------------
+# Auth helpers
+# ----------------------------
+def login(username, password_hash):
+    uid = db.validate_user(username, password_hash)
+    if uid:
+        st.session_state.user_id = uid
+        st.session_state.session_id = None  # reset session on login
+        return True
+    return False
+
+def register(username, email, password_hash):
+    uid = db.create_user(username, email, password_hash)
+    st.session_state.user_id = uid
+    st.session_state.session_id = None
+    return uid
+
 
 # ----------------------------
 # Helper functions for getting replies
 # ----------------------------
+
+def append_message(role: str, content: str, parent=None):
+    """Persist a message to DB and update session_state mirror."""
+    msg_id = db.insert_message(
+        st.session_state.session_id, role, content, parent
+    )
+    st.session_state.messages.append({
+        "Id": msg_id,
+        "role": role,
+        "content": content,
+        "ParentMessageId": parent,
+    })
+
+
 def get_reply_improvement_mode_no_intermediate(prompt: str, client: ConversationClient) -> None:
     """
     Stream and display an improved chatbot response without showing intermediate steps.
@@ -87,10 +120,7 @@ def get_reply_improvement_mode_no_intermediate(prompt: str, client: Conversation
             if len(parts) > 1:
                 parts = parts[1].split("### Comments", 1)
                 placeholder.markdown(fix_latex_delimiters(ensure_fenced_code(parts[0])[0])[0])
-    st.session_state.messages.append({
-        "role": "assistant", 
-        "content": fix_latex_delimiters(ensure_fenced_code(parts[0])[0])[0]
-    })
+    append_message("assistant", fix_latex_delimiters(ensure_fenced_code(parts[0])[0])[0])
 
 def get_reply_display_intermediate(prompt: str, client: ConversationClient) -> None:
     """
@@ -134,10 +164,7 @@ def get_reply_display_intermediate(prompt: str, client: ConversationClient) -> N
         final_answer = parts[2].split("### Comments", 1)[0]
     else:
         final_answer = display_text
-    st.session_state.messages.append({
-        "role": "assistant", 
-        "content": fix_latex_delimiters(ensure_fenced_code(final_answer)[0])[0]
-    })
+    append_message("assistant", fix_latex_delimiters(ensure_fenced_code(final_answer)[0])[0])
 
 def get_reply_standard_mode(prompt: str, client: ConversationClient) -> None:
     """
@@ -173,35 +200,15 @@ def get_reply_standard_mode(prompt: str, client: ConversationClient) -> None:
             break
         display_text += chunk
         placeholder.markdown(fix_latex_delimiters(ensure_fenced_code(display_text)[0])[0])
-    st.session_state.messages.append({
-        "role": "assistant", 
-        "content": fix_latex_delimiters(ensure_fenced_code(display_text)[0])[0]
-    })
+    append_message("assistant", fix_latex_delimiters(ensure_fenced_code(display_text)[0])[0])
 
 
 
 def main():
     """
     Launch and manage the Streamlit-based MPAI Assistant chatbot application.
-
-    This function sets up the Streamlit page configuration, displays introductory information and example prompts,
-    and provides sidebar options for enabling answer improvement and intermediate step display modes. It manages
-    session state for the conversation client and message history, renders the chat history, and handles user input
-    and response streaming. Depending on user-selected options, it invokes the appropriate reply function to stream
-    and display chatbot responses, supporting standard, improvement, and intermediate modes.
-
-    Returns
-    -------
-    None
-        This function updates the Streamlit UI and session state in place.
-
-    Notes
-    -----
-    - The sidebar allows toggling of improvement mode and intermediate step display.
-    - Session state is used to persist the conversation client and message history across interactions.
-    - The function dynamically selects the reply streaming mode based on user options.
-    - Designed for interactive use in a Streamlit web application.
     """
+
     # ----------------------------
     # Page setup
     # ----------------------------
@@ -233,42 +240,66 @@ def main():
     # ----------------------------
     # Session state
     # ----------------------------
+    if "user_id" not in st.session_state:
+        st.warning("Please log in to start chatting.")
+        return
+
+    # Load sessions for this user
+    sessions = db.list_sessions(st.session_state.user_id)
+    session_labels = [
+        f"Session {i+1} — {s['CreatedAt']:%Y-%m-%d %H:%M}"
+        for i, s in enumerate(sessions)
+    ]
+    session_ids = [s["Id"] for s in sessions]
+
+    # Dropdown to select a session
+    selected = st.sidebar.selectbox(
+        "Select chat session",
+        ["➕ New session"] + session_labels,
+        key="session_picker"
+    )
+
+    if selected == "➕ New session":
+        st.session_state.session_id = db.create_session(st.session_state.user_id)
+        st.session_state.messages = []
+    else:
+        idx = session_labels.index(selected)
+        st.session_state.session_id = session_ids[idx]
+        if "messages" not in st.session_state:
+            st.session_state.messages = db.list_messages(st.session_state.session_id)
+
     if "client" not in st.session_state:
         st.session_state.client = ConversationClient()
 
     # Always update
     st.session_state.client.improvement = improvement_mode
     st.session_state.client.intermediate_steps = display_intermediate
-
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-
     client = st.session_state.client
 
     # ----------------------------
-    # Display history
+    # Display history (sorted)
     # ----------------------------
-    for msg in st.session_state.messages:
+    for msg in sorted(st.session_state.messages, key=lambda m: m["MessageIndex"]):
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    
     # ----------------------------
     # Input + Reply
     # ----------------------------
     if prompt := st.chat_input("Type your message..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
+        append_message("user", prompt)
         with st.chat_message("user"):
             st.markdown(prompt)
 
         with st.chat_message("assistant"):
             if improvement_mode:
                 if not display_intermediate:
-                    get_reply_improvement_mode_no_intermediate(prompt,client)
+                    get_reply_improvement_mode_no_intermediate(prompt, client)
                 else:
-                    get_reply_display_intermediate(prompt,client)
+                    get_reply_display_intermediate(prompt, client)
             else:
-                get_reply_standard_mode(prompt,client)
+                get_reply_standard_mode(prompt, client)
+
 
 if __name__ == "__main__":
     main()
