@@ -40,10 +40,15 @@ from chat_server_demo.helper_functionality.code_fences import ensure_fenced_code
 from chat_server_demo.helper_functionality.latex import fix_latex_delimiters
 from chat_server_demo.client.client import ConversationClient
 from chat_server_demo.database import db
+import hashlib
 
 # ----------------------------
 # Auth helpers
 # ----------------------------
+def hash_password(password: str) -> str:
+    """Hash a password using SHA256 (or bcrypt/argon2 in production)."""
+    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+
 def login(username, password_hash):
     uid = db.validate_user(username, password_hash)
     if uid:
@@ -213,6 +218,33 @@ def main():
     # Page setup
     # ----------------------------
     st.title("🤖 Welcome to the MPAI assistant!")
+    # ----------------------------
+    # Login / Register
+    # ----------------------------
+    if "user_id" not in st.session_state:
+        st.subheader("Login")
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+
+        if st.button("Login"):
+            if login(username, hash_password(password)):
+                st.experimental_rerun()
+            else:
+                st.error("Invalid credentials")
+
+        st.markdown("---")
+        st.subheader("Register")
+        new_username = st.text_input("New username")
+        email = st.text_input("Email")
+        new_password = st.text_input("New password", type="password")
+
+        if st.button("Register"):
+            uid = register(new_username, email, hash_password(new_password))
+            if uid:
+                st.success("User created, you are now logged in.")
+                st.experimental_rerun()
+
+        return
     st.markdown("""
     This is an interactive demo of the `MPAI assistant`, a multipass answer improvement chatbot. 
     You can chat with the assistant and get responses as with any chatbot. If you enable 
