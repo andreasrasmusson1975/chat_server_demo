@@ -275,7 +275,7 @@ def main():
         st.warning("Please log in to start chatting.")
         return
 
-    # ----------------------------
+        # ----------------------------
     # Load sessions for this user
     # ----------------------------
     sessions = db.list_sessions(st.session_state.user_id)
@@ -285,18 +285,26 @@ def main():
     ]
     session_ids = [s["SessionId"] for s in sessions]
 
-    # Ensure the picker remembers its value across reruns
-    if "selected_session" not in st.session_state:
-        st.session_state.selected_session = "➕ New session"
+    # Build options list
+    options = ["➕ New session"] + session_labels
 
-    # Dropdown to select a session
+    # Decide default selection based on current session_id
+    if "session_id" in st.session_state and st.session_state.session_id in session_ids:
+        # existing session, map its index
+        current_idx = session_ids.index(st.session_state.session_id)
+        default_index = current_idx + 1  # shift because of "➕ New session"
+    else:
+        default_index = 0  # default to new session
+
+    # Sidebar selectbox with stable index
     selected = st.sidebar.selectbox(
         "Select chat session",
-        ["➕ New session"] + session_labels,
+        options,
+        index=default_index,
         key="selected_session"
     )
 
-    # New vs existing session handling
+    # Handle selection
     if selected == "➕ New session":
         st.session_state.session_id = db.create_session(st.session_state.user_id)
         st.session_state.messages = []
