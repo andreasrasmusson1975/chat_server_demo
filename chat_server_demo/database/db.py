@@ -32,21 +32,7 @@ credential = AzureCliCredential()
 token = credential.get_token("https://database.windows.net/.default")
 
 def _get_engine(database=DB_NAME):
-    exptoken = b''.join(pack('<H', ord(c)) for c in token.token)
-    tokenstruct = struct.pack('<I', len(exptoken)) + exptoken
-
-    connection_string = (
-        f"mssql+pyodbc:///?odbc_connect="
-        f"Driver={{ODBC Driver 18 for SQL Server}};"
-        f"Server=tcp:{SERVER},1433;"
-        f"Database={database};"
-        f"Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=30;"
-    )
-
-    return create_engine(
-        connection_string,
-        connect_args={"attrs_before": {1256: tokenstruct}},
-    )
+    return get_engine(database=DB_NAME)
 
 # -------------------------------
 # User functions
