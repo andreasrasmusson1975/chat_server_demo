@@ -16,8 +16,6 @@ from struct import pack
 import pyodbc
 from sqlalchemy import create_engine, text
 from azure.identity import AzureCliCredential
-import chat_server_demo.database.create_db 
-from chat_server_demo.database.create_db import create_engine
 
 # -------------------------------
 # Settings
@@ -31,8 +29,23 @@ DB_NAME = "chatserverdemo"
 credential = AzureCliCredential()
 token = credential.get_token("https://database.windows.net/.default")
 
-def _get_engine(database=DB_NAME):
-    return get_engine(database=DB_NAME)
+def get_engine(database=DB_NAME):
+    #token = credential.get_token("https://database.windows.net/.default")
+    exptoken = b''.join(pack('<H', ord(c)) for c in token.token)
+    tokenstruct = struct.pack('<I', len(exptoken)) + exptoken
+
+    connection_string = (
+        f"mssql+pyodbc:///?odbc_connect="
+        f"Driver={{ODBC Driver 18 for SQL Server}};"
+        f"Server=tcp:{SERVER},1433;"
+        f"Database={database};"
+        f"Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=30;"
+    )
+
+    return create_engine(
+        connection_string,
+        connect_args={"attrs_before": {1256: tokenstruct}},
+    )
 
 # -------------------------------
 # User functions
