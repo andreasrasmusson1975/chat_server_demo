@@ -221,10 +221,11 @@ def main():
     # ----------------------------
     # Login / Register
     # ----------------------------
-        # ----------------------------
+    
+    # ----------------------------
     # Sidebar auth controls
     # ----------------------------
-    st.sidebar.header("User Access")
+        st.sidebar.header("User Access")
 
     if "user_id" not in st.session_state:
         # --- Login form ---
@@ -238,29 +239,42 @@ def main():
             else:
                 st.sidebar.error("Invalid credentials")
 
-        # Show only this in main area
+        # --- Bootstrap: allow admin registration if no users exist ---
+        if db.count_users() == 0:
+            st.sidebar.markdown("---")
+            st.sidebar.subheader("Create Admin User")
+            new_username = st.sidebar.text_input("Admin username", key="bootstrap_username")
+            email = st.sidebar.text_input("Email", key="bootstrap_email")
+            new_password = st.sidebar.text_input("Password", type="password", key="bootstrap_password")
+
+            if st.sidebar.button("Register Admin"):
+                uid = register(new_username, email, hash_password(new_password))
+                db.set_admin(uid)
+                st.sidebar.success("Admin user created. Please log in.")
+                st.rerun()
+
         st.info("Please log in using the sidebar to start chatting.")
         return
 
     else:
         # --- Already logged in ---
-        st.sidebar.success(f"Logged in as user {st.session_state.username}")
+        st.sidebar.success(f"Logged in as {st.session_state.username}")
 
-        # Logout button
+        # Logout
         if st.sidebar.button("Logout"):
-            for key in ["user_id", "session_id", "messages", "clients", "selected_session"]:
+            for key in ["user_id", "username", "session_id", "messages", "clients", "selected_session"]:
                 if key in st.session_state:
                     del st.session_state[key]
             st.rerun()
 
-        # If this is the admin, show registration form
-        if st.session_state.user_id == 1:  # <- adjust logic for your admin check
+        # --- Registration form only if admin ---
+        if db.is_admin(st.session_state.user_id):  # you'd need to add this helper
             st.sidebar.subheader("Register New User")
             new_username = st.sidebar.text_input("New username", key="register_username")
             email = st.sidebar.text_input("Email", key="register_email")
             new_password = st.sidebar.text_input("New password", type="password", key="register_password")
 
-            if st.sidebar.button("Register"):
+            if st.sidebar.button("Register User"):
                 uid = register(new_username, email, hash_password(new_password))
                 if uid:
                     st.sidebar.success("User created.")
