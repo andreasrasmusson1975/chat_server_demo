@@ -40,6 +40,7 @@ def _get_engine(database=DB_NAME):
         f"Server=tcp:{SERVER},1433;"
         f"Database={database};"
         f"Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=30;"
+        f"Authentication=ActiveDirectoryAccessToken;"
     )
 
     return create_engine(
