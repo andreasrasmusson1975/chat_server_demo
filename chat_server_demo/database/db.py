@@ -26,7 +26,7 @@ DB_NAME = "chatserverdemo"
 # -------------------------------
 # Azure AD credential
 # -------------------------------
-credential = DefaultAzureCredential()
+credential = AzureCliCredential()
 
 
 def _get_engine(database=DB_NAME):
