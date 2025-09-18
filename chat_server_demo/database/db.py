@@ -16,6 +16,7 @@ from struct import pack
 import pyodbc
 from sqlalchemy import create_engine, text
 from azure.identity import AzureCliCredential
+import chat_server_demo.database.create_db 
 from chat_server_demo.database.create_db import create_engine
 
 # -------------------------------
