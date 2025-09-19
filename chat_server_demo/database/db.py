@@ -47,7 +47,7 @@ def _get_engine(database=DB_NAME):
     #     connect_args={"attrs_before": {1256: tokenstruct}},
     # )
     connection_string = (
-        f"mssql+pyodbc://{DB_USER}:{DB_PASS}"
+        f"mssql+pyodbc://{DB_USER}:{DB_PASSWORD}"
         f"@{SERVER}:1433/{database}"
         "?driver=ODBC+Driver+18+for+SQL+Server"
         "&Encrypt=yes&TrustServerCertificate=yes&Connection+Timeout=30"
