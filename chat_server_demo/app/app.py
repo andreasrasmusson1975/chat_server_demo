@@ -80,6 +80,17 @@ def append_message(role: str, content: str, parent=None):
         "MessageIndex": len(st.session_state.messages)
     })
 
+def conversation_history_from_messages():
+    conversation_history=[]
+    if st.session_state.messages:
+        for message in st.session_state.messages:
+            conversation_history.append({
+                "role": message["Role"],
+                "content": message["Message"]
+            })
+    return conversation_history
+        
+
 
 def get_reply_improvement_mode_no_intermediate(prompt: str, client: ConversationClient) -> None:
     """
@@ -388,6 +399,7 @@ def main():
 
 
         with st.chat_message("assistant"):
+            client.conversation_history = conversation_history_from_messages()
             if improvement_mode:
                 if not display_intermediate:
                     get_reply_improvement_mode_no_intermediate(prompt, client)
