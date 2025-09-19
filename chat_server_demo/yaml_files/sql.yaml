@@ -27,9 +27,9 @@ sql:
     create_table_sessions: |
       CREATE TABLE ChatLogs.Sessions (
         SessionId UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+        Name NVARCHAR(200) NULL,
         UserId INT NOT NULL
           CONSTRAINT FK_Sessions_Users REFERENCES Login.Users(Id),
-        Name ADD Name NVARCHAR(200) NULL,
         CreatedAt DATETIME2 DEFAULT SYSUTCDATETIME(),
         ExpiresAt DATETIME2 NULL
       );
