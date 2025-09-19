@@ -199,6 +199,18 @@ sql:
           WHERE Id = @UserId;
       END;
 
+    create_stored_procedure_get_username: |
+      CREATE OR ALTER PROCEDURE Login.GetUsername
+          @UserId INT
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+      
+          SELECT Username
+          FROM Login.Users
+          WHERE Id = @UserId;
+      END;
+
     
 
     
