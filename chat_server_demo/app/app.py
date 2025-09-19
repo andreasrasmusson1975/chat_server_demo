@@ -368,6 +368,7 @@ def main():
         st.session_state.clients[st.session_state.session_id] = ConversationClient()
 
     client = st.session_state.clients[st.session_state.session_id]
+    client.conversation_history = conversation_history_from_messages()
     client.improvement = improvement_mode
     client.intermediate_steps = display_intermediate
 
@@ -399,7 +400,6 @@ def main():
 
 
         with st.chat_message("assistant"):
-            client.conversation_history = conversation_history_from_messages()
             if improvement_mode:
                 if not display_intermediate:
                     get_reply_improvement_mode_no_intermediate(prompt, client)
