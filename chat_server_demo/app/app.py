@@ -378,7 +378,7 @@ def main():
             name_prompt = f"""
             Summarize this chat request in 3-6 words for use as a session title (output only the summary):\n\n{first_prompt}
             """
-            session_name = client.chat_once(name_prompt)[:200]  # cap length
+            session_name = client.chat_blocking(name_prompt)[:200]  # cap length
             db.set_session_name(st.session_state.session_id, session_name)
 
 
