@@ -15,7 +15,6 @@ import struct
 from struct import pack
 import pyodbc
 from sqlalchemy import create_engine, text
-from azure.identity import AzureCliCredential, DefaultAzureCredential
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 # -------------------------------
