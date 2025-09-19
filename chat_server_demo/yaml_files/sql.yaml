@@ -176,5 +176,19 @@ sql:
           FROM Login.Users;
       END;
 
+    create_stored_procedure_set_admin: |
+      CREATE OR ALTER PROCEDURE Login.SetAdmin
+          @UserId INT
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+      
+          UPDATE Login.Users
+          SET IsAdmin = 1
+          WHERE Id = @UserId;
+      END;
+
+    
+
     
 
