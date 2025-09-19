@@ -369,6 +369,7 @@ def main():
 
     client = st.session_state.clients[st.session_state.session_id]
     client.conversation_history = conversation_history_from_messages()
+    print(client.conversation_history)
     client.improvement = improvement_mode
     client.intermediate_steps = display_intermediate
 
