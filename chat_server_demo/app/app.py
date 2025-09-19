@@ -408,6 +408,6 @@ def main():
             else:
                 get_reply_standard_mode(prompt, client)
 
-
+        st.rerun()
 if __name__ == "__main__":
     main()
