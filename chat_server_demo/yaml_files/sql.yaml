@@ -187,6 +187,17 @@ sql:
           SET IsAdmin = 1
           WHERE Id = @UserId;
       END;
+    create_stored_procedure_is_admin: |
+      CREATE OR ALTER PROCEDURE Login.IsAdmin
+          @UserId INT
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+      
+          SELECT IsAdmin
+          FROM Login.Users
+          WHERE Id = @UserId;
+      END;
 
     
 
