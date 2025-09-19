@@ -310,36 +310,34 @@ def main():
         st.warning("Please log in to start chatting.")
         return
 
-        # ----------------------------
+    # ----------------------------
     # Load sessions for this user
     # ----------------------------
     sessions = db.list_sessions(st.session_state.user_id)
     session_labels = [
-        f"Session {s['SessionId']} — {s['CreatedAt']:%Y-%m-%d %H:%M}"
+        f"{s['SessionId']} — {s['CreatedAt']:%Y-%m-%d %H:%M}"
         for s in sessions
     ]
     session_ids = [s["SessionId"] for s in sessions]
 
-    # Build options list
+    # Build options
     options = ["➕ New session"] + session_labels
 
-    # Decide default selection based on current session_id
+    # Decide current index based on session_id
     if "session_id" in st.session_state and st.session_state.session_id in session_ids:
-        # existing session, map its index
-        current_idx = session_ids.index(st.session_state.session_id)
-        default_index = current_idx + 1  # shift because of "➕ New session"
+        default_index = session_ids.index(st.session_state.session_id) + 1
     else:
-        default_index = 0  # default to new session
+        default_index = 0  # ➕ New session
 
-    # Sidebar selectbox with stable index
+    # Sidebar selectbox
     selected = st.sidebar.selectbox(
         "Select chat session",
         options,
         index=default_index,
-        key="selected_session"
+        key="session_picker"
     )
 
-    # Handle selection
+    # --- Sync selection to session_id ---
     if selected == "➕ New session":
         st.session_state.session_id = db.create_session(st.session_state.user_id)
         st.session_state.messages = []
@@ -347,6 +345,7 @@ def main():
         idx = session_labels.index(selected)
         st.session_state.session_id = session_ids[idx]
         st.session_state.messages = db.list_messages(st.session_state.session_id)
+
 
     if "clients" not in st.session_state:
         st.session_state.clients = {}
