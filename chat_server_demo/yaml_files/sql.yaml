@@ -236,7 +236,17 @@ sql:
           SET Name = @Name
           WHERE SessionId = @SessionId;
       END;
-
+    create_stored_procedure_get_session_name: |
+      CREATE OR ALTER PROCEDURE ChatLogs.GetSessionName
+        @SessionId UNIQUEIDENTIFIER
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+      
+          SELECT Name
+          FROM ChatLogs.Sessions
+          WHERE SessionId = @SessionId;
+      END;
 
 
 
