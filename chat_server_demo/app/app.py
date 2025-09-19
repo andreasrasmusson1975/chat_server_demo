@@ -278,7 +278,18 @@ def main():
                 uid = register(new_username, email, hash_password(new_password))
                 if uid:
                     st.sidebar.success("User created.")
-
+    
+    sessions = db.list_sessions(st.session_state.user_id)
+    if "session_id" not in st.session_state or not st.session_state.session_id:
+        if sessions:
+            # Default to the most recent session
+            st.session_state.session_id = sessions[0]["SessionId"]
+            st.session_state.messages = db.list_messages(st.session_state.session_id)
+        else:
+            # No sessions yet → create one
+            new_id = db.create_session(st.session_state.user_id)
+            st.session_state.session_id = new_id
+            st.session_state.messages = []
     st.markdown("""
     This is an interactive demo of the `MPAI assistant`, a multipass answer improvement chatbot. 
     You can chat with the assistant and get responses as with any chatbot. If you enable 
@@ -310,44 +321,41 @@ def main():
         st.warning("Please log in to start chatting.")
         return
 
-    # ----------------------------
-    # Load sessions for this user
-    # ----------------------------
-    sessions = db.list_sessions(st.session_state.user_id)
-    session_labels = [
-        f"{s['SessionId']} — {s['CreatedAt']:%Y-%m-%d %H:%M}"
-        for s in sessions
-    ]
-    session_ids = [s["SessionId"] for s in sessions]
-    
-    options = ["➕ New session"] + session_labels
-    
-    # Always trust what the user picked
-    selected = st.sidebar.selectbox(
-        "Select chat session",
-        options,
-        key="session_picker"
-    )
-    
-    if selected == "➕ New session":
-        st.session_state.session_id = db.create_session(st.session_state.user_id)
+    st.sidebar.header("Sessions")
+
+    # Button to create new session
+    if st.sidebar.button("➕ New session"):
+        new_id = db.create_session(st.session_state.user_id)
+        st.session_state.session_id = new_id
         st.session_state.messages = []
-    else:
-        idx = session_labels.index(selected)
-        st.session_state.session_id = session_ids[idx]
-        st.session_state.messages = db.list_messages(st.session_state.session_id)
+        st.rerun()
+    
+    # List all sessions (newest first)
+    sessions = db.list_sessions(st.session_state.user_id)
+    
+    for s in sessions:
+        label = f"{s['SessionId']} — {s['CreatedAt']:%Y-%m-%d %H:%M}"
+        # Highlight active session
+        if st.session_state.get("session_id") == s["SessionId"]:
+            st.sidebar.markdown(f"**▶ {label}**")
+        else:
+            if st.sidebar.button(label, key=f"session_{s['SessionId']}"):
+                st.session_state.session_id = s["SessionId"]
+                st.session_state.messages = db.list_messages(s["SessionId"])
+                st.rerun()
+
     
     
     
-        if "clients" not in st.session_state:
-            st.session_state.clients = {}
-        
-        if st.session_state.session_id not in st.session_state.clients:
-            st.session_state.clients[st.session_state.session_id] = ConversationClient()
+    if "clients" not in st.session_state:
+        st.session_state.clients = {}
     
-        client = st.session_state.clients[st.session_state.session_id]
-        client.improvement = improvement_mode
-        client.intermediate_steps = display_intermediate
+    if st.session_state.session_id not in st.session_state.clients:
+        st.session_state.clients[st.session_state.session_id] = ConversationClient()
+
+    client = st.session_state.clients[st.session_state.session_id]
+    client.improvement = improvement_mode
+    client.intermediate_steps = display_intermediate
 
     # ----------------------------
     # Display history (sorted)
