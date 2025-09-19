@@ -177,35 +177,35 @@ def list_messages(session_id: str) -> list[dict]:
 
 
 # -------------------------------
-# Registration related
+# Registration related (via sprocs)
 # -------------------------------
+
 def count_users() -> int:
-    """Return total number of users in the system."""
-    sql = text("SELECT COUNT(*) AS cnt FROM Login.Users")
+    """Return total number of users in the system (via sproc)."""
+    sql = text("EXEC Login.CountUsers")
     with _get_engine().begin() as conn:
         row = conn.execute(sql).fetchone()
-        return int(row.cnt) if row else 0
+        return int(row.Cnt) if row else 0
 
 
 def set_admin(user_id: int) -> None:
-    """Mark a user as admin."""
-    sql = text("UPDATE Login.Users SET IsAdmin = 1 WHERE Id = :uid")
+    """Mark a user as admin (via sproc)."""
+    sql = text("EXEC Login.SetAdmin @UserId=:uid")
     with _get_engine().begin() as conn:
         conn.execute(sql, {"uid": user_id})
 
 
 def is_admin(user_id: int) -> bool:
-    """Check whether a user is an admin."""
-    sql = text("SELECT IsAdmin FROM Login.Users WHERE Id = :uid")
+    """Check whether a user is an admin (via sproc)."""
+    sql = text("EXEC Login.IsAdmin @UserId=:uid")
     with _get_engine().begin() as conn:
         row = conn.execute(sql, {"uid": user_id}).fetchone()
         return bool(row.IsAdmin) if row else False
 
 
 def get_username(user_id: int) -> str | None:
-    """Fetch the username for a given user id."""
-    sql = text("SELECT Username FROM Login.Users WHERE Id = :uid")
+    """Fetch the username for a given user id (via sproc)."""
+    sql = text("EXEC Login.GetUsername @UserId=:uid")
     with _get_engine().begin() as conn:
         row = conn.execute(sql, {"uid": user_id}).fetchone()
         return row.Username if row else None
-
