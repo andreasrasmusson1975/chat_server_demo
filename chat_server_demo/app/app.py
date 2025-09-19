@@ -337,7 +337,7 @@ def main():
     sessions = db.list_sessions(st.session_state.user_id)
     
     for s in sessions:
-        label = f"{s['SessionId']} — {s['CreatedAt']:%Y-%m-%d %H:%M}"
+        label = f"{s['Name']} — {s['CreatedAt']:%Y-%m-%d %H:%M}"
         # Highlight active session
         if st.session_state.get("session_id") == s["SessionId"]:
             st.sidebar.markdown(f"**▶ {label}**")
@@ -381,7 +381,9 @@ def main():
             name_prompt = f"""
             Summarize this chat request in 3-6 words for use as a session title (output only the summary):\n\n{first_prompt}
             """
+            client.improvement = False
             session_name = client.chat_blocking(name_prompt)[:200]  # cap length
+            client.improvement = improvement_mode
             db.set_session_name(st.session_state.session_id, session_name)
 
 
