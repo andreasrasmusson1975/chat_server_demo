@@ -440,9 +440,19 @@ class LaTeXFixer:
 
 def fix_align_environments(text: str) -> str:
     """
-    Convert LaTeX \begin{align}...\end{align} and \begin{align*}...\end{align*}
-    blocks into $$...$$ with \begin{aligned}...\end{aligned}, cleaning up
-    issues that break KaTeX rendering.
+    Normalize LaTeX align-family environments for KaTeX/Markdown rendering.
+
+    Converts any of:
+        \begin{align}...\end{align}
+        \begin{align*}...\end{align*}
+        \begin{aligned}...\end{aligned}
+
+    into:
+        $$
+        \begin{aligned}
+          ...
+        \end{aligned}
+        $$
 
     Fixes applied:
     - Replace align/align* with aligned.
@@ -450,22 +460,22 @@ def fix_align_environments(text: str) -> str:
     - Remove redundant dollar signs ($$ or $$$$).
     - Insert line breaks (\\) between equations if missing.
     """
-
     def replacer(match):
-        content = match.group(1)
+        env = match.group(1)   # align, align*, or aligned
+        content = match.group(2)
 
         # Remove stray '$' (common in LLM output like $$$$)
         content = content.replace("$$$$", "").replace("$$", "")
 
-        # If multiple equations are jammed together, try to split on `) \`
-        # or `) \delta` etc. and insert proper line breaks
+        # If multiple equations are jammed together, try to insert proper line breaks
         content = re.sub(r"\)\s*(\\\w+)", r") \\\\\1", content)
 
+        # Always normalize to "aligned"
         return "$$\n\\begin{aligned}\n" + content.strip() + "\n\\end{aligned}\n$$"
 
-    # Match both align and align* environments (multiline)
-    pattern = re.compile(r"\\begin{align\*?}(.*?)\\end{align\*?}", re.DOTALL)
+    pattern = re.compile(r"\\begin{(align\*?|aligned)}(.*?)\\end{\1}", re.DOTALL)
     return pattern.sub(replacer, text)
+
 
 
 
