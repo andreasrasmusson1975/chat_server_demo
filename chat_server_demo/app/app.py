@@ -319,25 +319,16 @@ def main():
         for s in sessions
     ]
     session_ids = [s["SessionId"] for s in sessions]
-
-    # Build options
+    
     options = ["➕ New session"] + session_labels
-
-    # Decide current index based on session_id
-    if "session_id" in st.session_state and st.session_state.session_id in session_ids:
-        default_index = session_ids.index(st.session_state.session_id) + 1
-    else:
-        default_index = 0  # ➕ New session
-
-    # Sidebar selectbox
+    
+    # Always trust what the user picked
     selected = st.sidebar.selectbox(
         "Select chat session",
         options,
-        index=default_index,
         key="session_picker"
     )
-
-    # --- Sync selection to session_id ---
+    
     if selected == "➕ New session":
         st.session_state.session_id = db.create_session(st.session_state.user_id)
         st.session_state.messages = []
@@ -345,17 +336,18 @@ def main():
         idx = session_labels.index(selected)
         st.session_state.session_id = session_ids[idx]
         st.session_state.messages = db.list_messages(st.session_state.session_id)
-
-
-    if "clients" not in st.session_state:
-        st.session_state.clients = {}
     
-    if st.session_state.session_id not in st.session_state.clients:
-        st.session_state.clients[st.session_state.session_id] = ConversationClient()
-
-    client = st.session_state.clients[st.session_state.session_id]
-    client.improvement = improvement_mode
-    client.intermediate_steps = display_intermediate
+    
+    
+        if "clients" not in st.session_state:
+            st.session_state.clients = {}
+        
+        if st.session_state.session_id not in st.session_state.clients:
+            st.session_state.clients[st.session_state.session_id] = ConversationClient()
+    
+        client = st.session_state.clients[st.session_state.session_id]
+        client.improvement = improvement_mode
+        client.intermediate_steps = display_intermediate
 
     # ----------------------------
     # Display history (sorted)
