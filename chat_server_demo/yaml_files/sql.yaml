@@ -224,6 +224,20 @@ sql:
           WHERE Username = @Username
             AND PasswordHash = @PasswordHash;
       END;
+    create_stored_procedure_set_session_name: |
+      CREATE PROCEDURE ChatLogs.SetSessionName
+          @SessionId UNIQUEIDENTIFIER,
+          @Name NVARCHAR(200)
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+      
+          UPDATE ChatLogs.Sessions
+          SET Name = @Name
+          WHERE SessionId = @SessionId;
+      END;
+
+
 
 
     
