@@ -250,8 +250,11 @@ def main():
             if st.sidebar.button("Register Admin"):
                 uid = register(new_username, email, hash_password(new_password))
                 db.set_admin(uid)
-                st.sidebar.success("Admin user created. Please log in.")
-                return
+                st.session_state.user_id = uid
+                st.session_state.username = new_username   # <-- fix
+                st.sidebar.success("Admin user created. You are now logged in.")
+                st.rerun()
+
 
         st.info("Please log in using the sidebar to start chatting.")
         return
