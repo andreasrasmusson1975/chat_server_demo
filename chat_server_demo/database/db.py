@@ -96,18 +96,19 @@ def delete_session(session_id: str) -> None:
         conn.execute(sql, {"sid": session_id})
 
 def set_session_name(session_id: str, name: str) -> None:
-    """Update the name of a session."""
-    sql = text("UPDATE ChatLogs.Sessions SET Name = :n WHERE SessionId = :sid")
+    """Update the name of a session via stored procedure."""
+    sql = text("EXEC ChatLogs.SetSessionName @SessionId=:sid, @Name=:n")
     with _get_engine().begin() as conn:
         conn.execute(sql, {"sid": session_id, "n": name})
 
 
 def get_session_name(session_id: str) -> str | None:
-    """Fetch the name of a session."""
-    sql = text("SELECT Name FROM ChatLogs.Sessions WHERE SessionId = :sid")
+    """Fetch the name of a session via stored procedure."""
+    sql = text("EXEC ChatLogs.GetSessionName @SessionId=:sid")
     with _get_engine().begin() as conn:
         row = conn.execute(sql, {"sid": session_id}).fetchone()
         return row.Name if row else None
+
 
 
 # -------------------------------
