@@ -212,7 +212,7 @@ sql:
       END;
 
     create_stored_procedure_get_username: |
-      CREATE OR PROCEDURE Login.ValidateUser
+      CREATE PROCEDURE Login.ValidateUser
           @Username NVARCHAR(100),
           @PasswordHash NVARCHAR(256)
       AS
