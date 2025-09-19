@@ -211,6 +211,21 @@ sql:
           WHERE Id = @UserId;
       END;
 
+    create_stored_procedure_get_username: |
+      CREATE OR PROCEDURE Login.ValidateUser
+          @Username NVARCHAR(100),
+          @PasswordHash NVARCHAR(256)
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+      
+          SELECT Id
+          FROM Login.Users
+          WHERE Username = @Username
+            AND PasswordHash = @PasswordHash;
+      END;
+
+
     
 
     
