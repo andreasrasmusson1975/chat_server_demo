@@ -371,6 +371,16 @@ def main():
         append_message("user", prompt)
         with st.chat_message("user"):
             st.markdown(prompt)
+        if len(st.session_state.messages) == 1:
+            # First message in this session
+            first_prompt = prompt
+            # Let the model generate a short name
+            name_prompt = f"""
+            Summarize this chat request in 3-6 words for use as a session title (output only the summary):\n\n{first_prompt}
+            """
+            session_name = client.chat_once(name_prompt)[:200]  # cap length
+            db.set_session_name(st.session_state.session_id, session_name)
+
 
         with st.chat_message("assistant"):
             if improvement_mode:
