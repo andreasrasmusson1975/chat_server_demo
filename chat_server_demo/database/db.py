@@ -26,7 +26,7 @@ DB_NAME = os.getenv("CHAT_SERVER_DEMO_DB_NAME")
 DB_USER = os.getenv("CHAT_SERVER_DEMO_DB_USERNAME")
 credential = DefaultAzureCredential()
 secret_client = SecretClient(vault_url=KV_URL, credential=credential)
-DB_PASSWORD secret_client.get_secret(os.getenv("CHAT_SERVER_DEMO_DB_PASS_SECRET_NAME")).value
+DB_PASSWORD = secret_client.get_secret(os.getenv("CHAT_SERVER_DEMO_DB_PASS_SECRET_NAME")).value
 
 
 def _get_engine(database=DB_NAME):
