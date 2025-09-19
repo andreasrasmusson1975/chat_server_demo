@@ -122,6 +122,7 @@ sql:
 
         SELECT 
             SessionId,
+            Name,
             CreatedAt,
             ExpiresAt
         FROM ChatLogs.Sessions
