@@ -165,3 +165,16 @@ sql:
         DELETE FROM ChatLogs.Sessions
         WHERE SessionId = @SessionId;
       END;
+
+    create_stored_procedure_count_users: |
+      CREATE OR ALTER PROCEDURE Login.CountUsers
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+      
+          SELECT COUNT(*) AS Cnt
+          FROM Login.Users;
+      END;
+
+    
+
