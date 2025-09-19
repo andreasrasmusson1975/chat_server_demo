@@ -66,8 +66,8 @@ def create_user(username: str, email: str, password_hash: str) -> int:
         return int(result.scalar())
 
 def validate_user(username: str, password_hash: str) -> int | None:
-    """Validate user credentials. Returns user Id or None."""
-    sql = text("SELECT Id FROM Login.Users WHERE Username=:u AND PasswordHash=:ph")
+    """Validate user credentials. Returns user Id or None (via sproc)."""
+    sql = text("EXEC Login.ValidateUser @Username=:u, @PasswordHash=:ph")
     with _get_engine().begin() as conn:
         row = conn.execute(sql, {"u": username, "ph": password_hash}).fetchone()
         return int(row.Id) if row else None
