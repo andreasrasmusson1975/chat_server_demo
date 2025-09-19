@@ -16,36 +16,44 @@ from struct import pack
 import pyodbc
 from sqlalchemy import create_engine, text
 from azure.identity import AzureCliCredential, DefaultAzureCredential
-
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
 # -------------------------------
 # Settings
 # -------------------------------
+KV_URL = os.getenv("CHAT_SERVER_DEMO_KEYVAULT_URL")
 SERVER = os.getenv("CHAT_SERVER_DEMO_AZURE_SQL_SERVER")
-DB_NAME = "chatserverdemo"
-
-# -------------------------------
-# Azure AD credential
-# -------------------------------
-credential = AzureCliCredential()
+DB_NAME = os.getenv("CHAT_SERVER_DEMO_DB_NAME")
+DB_USER = os.getenv("CHAT_SERVER_DEMO_DB_USERNAME")
+credential = DefaultAzureCredential()
+secret_client = SecretClient(vault_url=KV_URL, credential=credential)
+DB_PASSWORD secret_client.get_secret(os.getenv("CHAT_SERVER_DEMO_DB_PASS_SECRET_NAME")).value
 
 
 def _get_engine(database=DB_NAME):
-    token = credential.get_token("https://database.windows.net/.default")
-    rawtoken = token.token.encode("utf-16-le")
-    tokenstruct = struct.pack("<I", len(rawtoken)) + rawtoken
+    # token = credential.get_token("https://database.windows.net/.default")
+    # rawtoken = token.token.encode("utf-16-le")
+    # tokenstruct = struct.pack("<I", len(rawtoken)) + rawtoken
 
+    # connection_string = (
+    #     f"mssql+pyodbc:///?odbc_connect="
+    #     f"Driver={{ODBC Driver 18 for SQL Server}};"
+    #     f"Server=tcp:{SERVER},1433;"
+    #     f"Database={database};"
+    #     f"Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=30;"
+    # )
+
+    # return create_engine(
+    #     connection_string,
+    #     connect_args={"attrs_before": {1256: tokenstruct}},
+    # )
     connection_string = (
-        f"mssql+pyodbc:///?odbc_connect="
-        f"Driver={{ODBC Driver 18 for SQL Server}};"
-        f"Server=tcp:{SERVER},1433;"
-        f"Database={database};"
-        f"Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=30;"
+        f"mssql+pyodbc://{DB_USER}:{DB_PASS}"
+        f"@{SERVER}:1433/{database}"
+        "?driver=ODBC+Driver+18+for+SQL+Server"
+        "&Encrypt=yes&TrustServerCertificate=yes&Connection+Timeout=30"
     )
-
-    return create_engine(
-        connection_string,
-        connect_args={"attrs_before": {1256: tokenstruct}},
-    )
+    return create_engine(connection_string)
 
 
 # -------------------------------
