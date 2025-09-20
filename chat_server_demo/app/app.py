@@ -39,6 +39,7 @@ from chat_server_demo.helper_functionality.code_fences import ensure_fenced_code
 from chat_server_demo.helper_functionality.latex import fix_latex_delimiters
 from chat_server_demo.client.client import ConversationClient
 from chat_server_demo.database import db
+from chat_server_demo.database.global_logging import log_this   
 import hashlib
 
 # ----------------------------
@@ -48,6 +49,7 @@ def hash_password(password: str) -> str:
     """Hash a password using SHA256 (or bcrypt/argon2 in production)."""
     return hashlib.sha256(password.encode("utf-8")).hexdigest()
 
+@log_this
 def login(username, password_hash):
     uid = db.validate_user(username, password_hash)
     if uid:
@@ -56,7 +58,7 @@ def login(username, password_hash):
         return True
     return False
 
-
+@log_this
 def register(username, email, password_hash):
     uid = db.create_user(username, email, password_hash)
     st.session_state.user_id = uid
@@ -91,7 +93,7 @@ def conversation_history_from_messages():
     return conversation_history
         
 
-
+@log_this
 def get_reply_improvement_mode_no_intermediate(prompt: str, client: ConversationClient) -> None:
     """
     Stream and display an improved chatbot response without showing intermediate steps.
@@ -138,6 +140,7 @@ def get_reply_improvement_mode_no_intermediate(prompt: str, client: Conversation
                 placeholder.markdown(fix_latex_delimiters(ensure_fenced_code(parts[0])[0])[0])
     append_message("assistant", fix_latex_delimiters(ensure_fenced_code(parts[0])[0])[0])
 
+@log_this
 def get_reply_display_intermediate(prompt: str, client: ConversationClient) -> None:
     """
     Stream and display a chatbot response with intermediate steps.
@@ -182,6 +185,7 @@ def get_reply_display_intermediate(prompt: str, client: ConversationClient) -> N
         final_answer = display_text
     append_message("assistant", fix_latex_delimiters(ensure_fenced_code(final_answer)[0])[0])
 
+@log_this
 def get_reply_standard_mode(prompt: str, client: ConversationClient) -> None:
     """
     Stream and display a standard chatbot response without improvement or intermediate steps.
@@ -348,7 +352,7 @@ def main():
     sessions = db.list_sessions(st.session_state.user_id)
     
     for s in sessions:
-        label = f"{s['Name']} — {s['CreatedAt']:%Y-%m-%d %H:%M}"
+        label = f"{s['Name']}\n\n {s['CreatedAt']:%Y-%m-%d %H:%M}"
         # Highlight active session
         if st.session_state.get("session_id") == s["SessionId"]:
             st.sidebar.markdown(f"**▶ {label}**")

@@ -76,7 +76,7 @@ env\Scripts\python.exe -m pip install . --no-deps
 
 REM Install core dependencies (Streamlit and PyYAML) into the virtual environment
 echo Installing core dependencies into venv...
-env\Scripts\python.exe -m pip install streamlit pyaml pyodbc azure-identity azure-keyvault-secrets sqlalchemy
+env\Scripts\python.exe -m pip install streamlit pyaml pyodbc azure-identity azure-keyvault-secrets sqlalchemy pyodbc
 
 REM Optionally create database
 if %CREATE_DB%==1 (

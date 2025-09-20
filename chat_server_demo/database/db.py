@@ -10,6 +10,7 @@ wrapping stored procedure calls in Azure SQL DB.
 Uses Azure AD token authentication (DefaultAzureCredential) and pyodbc/SQLAlchemy.
 """
 
+import json
 import os
 import struct
 from struct import pack
@@ -177,7 +178,7 @@ def list_messages(session_id: str) -> list[dict]:
 
 
 # -------------------------------
-# Registration related (via sprocs)
+# Registration related
 # -------------------------------
 
 def count_users() -> int:
@@ -209,3 +210,32 @@ def get_username(user_id: int) -> str | None:
     with _get_engine().begin() as conn:
         row = conn.execute(sql, {"uid": user_id}).fetchone()
         return row.Username if row else None
+
+# -------------------------------
+# Application logging
+# -------------------------------
+def insert_log(level: str, func_name: str, args=None, kwargs=None, result=None, exception=None, user_id=None):
+    """
+    Insert an application log record into the database via stored procedure.
+    All parameters except level and func_name are optional.
+    """
+    sql = text("""
+        EXEC AppLogs.InsertLog 
+            @Level=:level, 
+            @FunctionName=:func, 
+            @Args=:args, 
+            @Kwargs=:kwargs, 
+            @Result=:result, 
+            @Exception=:exc, 
+            @UserId=:uid
+    """)
+    with _get_engine().begin() as conn:
+        conn.execute(sql, {
+            "level": level,
+            "func": func_name,
+            "args": json.dumps(args, default=str) if args else None,
+            "kwargs": json.dumps(kwargs, default=str) if kwargs else None,
+            "result": str(result) if result is not None else None,
+            "exc": str(exception) if exception else None,
+            "uid": user_id,
+        })

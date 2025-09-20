@@ -15,6 +15,22 @@ sql:
     create_schema_login: |
       CREATE SCHEMA Login;
 
+    create_schema_applogs: |
+      CREATE SCHEMA AppLogs;
+
+    create_table_logs: |
+      CREATE TABLE AppLogs.Logs (
+          Id INT IDENTITY(1,1) PRIMARY KEY,
+          LogTime DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+          Level NVARCHAR(20) NOT NULL,
+          FunctionName NVARCHAR(200) NOT NULL,
+          Args NVARCHAR(MAX) NULL,
+          Kwargs NVARCHAR(MAX) NULL,
+          Result NVARCHAR(MAX) NULL,
+          Exception NVARCHAR(MAX) NULL,
+          UserId INT NULL
+      );
+
     create_table_users: |
       CREATE TABLE Login.Users (
         Id INT IDENTITY(1,1) PRIMARY KEY,
@@ -246,6 +262,23 @@ sql:
           SELECT Name
           FROM ChatLogs.Sessions
           WHERE SessionId = @SessionId;
+      END;
+
+    create_stored_procedure_insert_log: |
+      CREATE OR ALTER PROCEDURE AppLogs.InsertLog
+          @Level NVARCHAR(20),
+          @FunctionName NVARCHAR(200),
+          @Args NVARCHAR(MAX) = NULL,
+          @Kwargs NVARCHAR(MAX) = NULL,
+          @Result NVARCHAR(MAX) = NULL,
+          @Exception NVARCHAR(MAX) = NULL,
+          @UserId INT = NULL
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+
+          INSERT INTO AppLogs.Logs (LogTime, Level, FunctionName, Args, Kwargs, Result, Exception, UserId)
+          VALUES (SYSUTCDATETIME(), @Level, @FunctionName, @Args, @Kwargs, @Result, @Exception, @UserId);
       END;
 
 
