@@ -10,26 +10,26 @@
 # Usage:
 #   ./install.sh --sql-server FQDN --db-name NAME \
 #       --db-password-secret SECRET --app-user-secret SECRET \
-#       --vault-name VAULT --domain HOST [--fresh] [--venv DIR]
+#       --vault-name VAULT --domain HOST [--fresh] [--venv DIR] [--with-db]
 #
 # Options:
-#   --sql-server FQDN          Fully qualified domain name of the SQL server
-#   --db-name NAME             Name of the database to configure
+#   --sql-server FQDN            Fully qualified domain name of the SQL server
+#   --db-name NAME               Name of the database to configure
 #   --db-password-secret SECRET  Secret name for the database password
-#   --app-user-secret SECRET   Secret name for the application user credentials
-#   --vault-name VAULT         Name of the Azure Key Vault
-#   --domain HOST              Domain name for the application
-#   --fresh                    Recreate the virtual environment from scratch
-#   --venv DIR                 Specify a custom directory for the virtual environment
-#   -h, --help                 Display this help message
+#   --app-user-secret SECRET     Secret name for the application user credentials
+#   --vault-name VAULT           Name of the Azure Key Vault
+#   --domain HOST                Domain name for the application
+#   --with-db                    Initialize and migrate the database schema
+#   --fresh                      Recreate the virtual environment from scratch
+#   --venv DIR                   Specify a custom directory for the virtual environment
+#   -h, --help                   Display this help message
 #
 # Notes:
 # - Ensure that the required secrets are stored in Azure Key Vault.
 # - Run this script with appropriate permissions to access the Key Vault and configure the database.
 # - The script uses Python 3 by default but allows customization via the PYTHON_BIN environment variable.
 #
-# Author:
-# Andreas Rasmusson
+# Author: Andreas Rasmusson
 # ---------------------------------------------
 
 # Variables and defaults
@@ -38,6 +38,7 @@ IFS=$'\n\t'
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 VENV_DIR="env"
 FRESH=0
+WITH_DB=0
 SQL_SERVER=""
 DB_NAME=""
 DB_PASS_SECRET=""
@@ -45,7 +46,7 @@ APP_USER_SECRET=""
 VAULT_NAME=""
 DOMAIN=""
 
-# iterate args 
+# iterate args
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --fresh) FRESH=1; shift ;;
@@ -56,8 +57,9 @@ while [[ $# -gt 0 ]]; do
     --app-user-secret)    APP_USER_SECRET="${2:?Missing app user secret name}"; shift 2 ;;
     --vault-name)  VAULT_NAME="${2:?Missing vault name}"; shift 2 ;;
     --domain)      DOMAIN="${2:?Missing domain}"; shift 2 ;;
+    --with-db)     WITH_DB=1; shift ;;
     -h|--help)
-      echo "Usage: $0 --sql-server FQDN --db-name NAME --db-password-secret SECRET --app-user-secret SECRET --vault-name VAULT --domain HOST [--fresh] [--venv DIR]"
+      echo "Usage: $0 --sql-server FQDN --db-name NAME --db-password-secret SECRET --app-user-secret SECRET --vault-name VAULT --domain HOST [--fresh] [--venv DIR] [--with-db]"
       exit 0
       ;;
     *) echo "❌ Unknown arg: $1"; exit 1 ;;
@@ -110,6 +112,14 @@ pip install . --no-deps
 
 msg "Installing runtime deps…"
 pip install streamlit azure-identity azure-keyvault-secrets sqlalchemy pyodbc pyyaml
+
+# -------------------------------
+# Database setup (optional)
+# -------------------------------
+if [[ $WITH_DB -eq 1 ]]; then
+  msg "🗄️ Setting up database schema…"
+  python -m chat_server_demo.database.init_schema
+fi
 
 # -------------------------------
 # Streamlit config
