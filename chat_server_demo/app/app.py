@@ -52,50 +52,6 @@ st.set_page_config(
     page_icon="🤖", 
     layout="wide"
 )
-st.markdown(
-    """
-    <style>
-    /* Import fonts */
-    @import url('https://fonts.googleapis.com/css2?family=STIX+Two+Text&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap');
-
-    /* Global text: white in LaTeX-style serif */
-    html, body, [class*="css"] {
-        font-family: 'STIX Two Text', 'Latin Modern Roman', serif !important;
-        color: #FFFFFF !important;   /* White text */
-    }
-
-    /* Headers */
-    h1, h2, h3, h4 {
-        font-family: 'STIX Two Text', 'Latin Modern Roman', serif !important;
-        font-weight: 500;
-        color: #FFFFFF !important;
-    }
-
-    /* Code blocks */
-    code, pre {
-        font-family: 'Fira Code', monospace !important;
-        color: #00FF41 !important;   /* Matrix green for code */
-        background: #000000 !important;
-    }
-
-    /* Buttons */
-    button {
-        border: 1px solid #00FF41 !important;
-        color: #00FF41 !important;
-        background-color: #0D0208 !important;
-    }
-    button:hover {
-        background-color: #001100 !important;
-        box-shadow: 0 0 8px #00FF41;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-
-
 import os
 import sys
 import subprocess
