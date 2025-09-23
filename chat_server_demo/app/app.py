@@ -632,11 +632,11 @@ def main():
     # ----------------------------
     # Page setup
     # ----------------------------
-    st.markdown(
+    st.sidebar.markdown(
         """
-        <div style="position: fixed; top: 30px; left: 500px; z-index: 9999;">
+        <div style="text-align: center; margin: 10px 0;">
             <img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExOW1ocXdiM2RqMWxxY2U2bDV6MTE4dmE2NW10bnF2OXN0N2Y0MjlyNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/MCd33lAKSLajqWT60m/giphy.gif" 
-                 width="200" height="100" alt="NeuralNet">
+                 width="120" alt="Matrix Gif">
         </div>
         """,
         unsafe_allow_html=True
