@@ -364,6 +364,13 @@ def conversation_history_from_messages():
     typically follows chronological ordering based on MessageIndex.
     
     """
+    if "messages" not in st.session_state:
+        return []
+
+    return [
+        {"role": msg["Role"].lower(), "content": msg["Message"]}
+        for msg in sorted(st.session_state.messages, key=lambda m: m["MessageIndex"])
+    ]
         
 
 @log_this
