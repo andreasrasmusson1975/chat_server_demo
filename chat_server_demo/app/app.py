@@ -52,6 +52,29 @@ st.set_page_config(
     page_icon="🤖", 
     layout="wide"
 )
+st.markdown(
+    """
+    <style>
+    /* Leave block code untouched (keeps normal gray + syntax highlighting) */
+    pre code {
+        all: revert !important;
+    }
+
+    /* Inline code (backticks) gets custom style */
+    code {
+        color: #1E90FF !important;  /* light blue text */
+        background-color: rgba(30, 144, 255, 0.15) !important;
+        border-radius: 4px !important;
+        padding: 2px 5px !important;
+        font-family: "Fira Code", "Courier New", monospace !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
+
 import os
 import sys
 import subprocess
@@ -634,13 +657,16 @@ def main():
     # ----------------------------
     st.sidebar.markdown(
         """
-        <div style="text-align: left;">
-            <img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExOW1ocXdiM2RqMWxxY2U2bDV6MTE4dmE2NW10bnF2OXN0N2Y0MjlyNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/MCd33lAKSLajqWT60m/giphy.gif" 
-                 width="70" alt="NeuralNet">
+        <div style="text-align: left; margin-top: 10px;">
+            <img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExOW1ocXdiM2RqMWxxY2U2bDV6MTE4dmE2NW10bnF2OXN0N2Y0MjlyNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/MCd33lAKSLajqWT60m/giphy.gif"
+                 width="300"
+                 style="border-radius: 20px; border: 2px solid #1E90FF; box-shadow: 0 0 10px #1E90FF;"
+                 alt="NeuralNet">
         </div>
         """,
         unsafe_allow_html=True
     )
+
 
     st.title("🤖 Welcome to the MPAI assistant!")
     # ----------------------------
@@ -686,7 +712,25 @@ def main():
 
     else:
         # --- Already logged in ---
-        st.sidebar.success(f"Logged in as {st.session_state.username}")
+        st.sidebar.markdown(
+	    """
+	    <div style="
+	        background-color: rgba(30, 144, 255, 0.15);
+	        border: 1px solid #1E90FF;
+	        border-radius: 10px;
+	        box-shadow: 0 0 12px #1E90FF;
+	        color: white;
+	        padding: 0.5rem 1rem;
+	        font-weight: 500;
+	        margin-bottom: 1rem;">
+	        ✅ Logged in as andreas
+	    </div>
+	    """,
+	    unsafe_allow_html=True
+	)
+
+
+	#st.sidebar.success(f"Logged in as {st.session_state.username}")
 
         # Logout
         if st.sidebar.button("Logout"):
