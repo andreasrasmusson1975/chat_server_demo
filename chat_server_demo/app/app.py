@@ -634,9 +634,9 @@ def main():
     # ----------------------------
     st.markdown(
         """
-        <div style="position: fixed; top: 30px; left: 30px; z-index: 9999;">
+        <div style="position: fixed; top: 30px; left: 500px; z-index: 9999;">
             <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExNXJjbDdkNWNvOWtiM2p5bDkzeWNqMWRsY2tmdmxkeGVzcm45dGlscyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/U3aSIK0Q0hP6B9VkkH/giphy.gif" 
-                 width="200" height="200" alt="NeuralNet">
+                 width="200" height="100" alt="NeuralNet">
         </div>
         """,
         unsafe_allow_html=True
