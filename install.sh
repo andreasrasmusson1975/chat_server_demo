@@ -118,7 +118,7 @@ pip install streamlit azure-identity azure-keyvault-secrets sqlalchemy pyodbc py
 # -------------------------------
 if [[ $WITH_DB -eq 1 ]]; then
   msg "🗄️ Setting up database schema…"
-  python -m chat_server_demo.database.init_schema
+  python -m chat_server_demo.database.create_db
 fi
 
 # -------------------------------
