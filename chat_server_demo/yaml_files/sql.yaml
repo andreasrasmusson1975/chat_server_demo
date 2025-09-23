@@ -1,0 +1,289 @@
+sql:
+  db_creation_and_deletion:
+
+    drop_db_if_exists: |
+      IF EXISTS (SELECT name FROM sys.databases WHERE name = 'chatserverdemo')
+      BEGIN
+          DROP DATABASE chatserverdemo;
+      END;
+    create_db: |
+      CREATE DATABASE chatserverdemo;
+    
+    create_schema_chatlogs: |
+      CREATE SCHEMA ChatLogs;
+
+    create_schema_login: |
+      CREATE SCHEMA Login;
+
+    create_schema_applogs: |
+      CREATE SCHEMA AppLogs;
+
+    create_table_logs: |
+      CREATE TABLE AppLogs.Logs (
+          Id INT IDENTITY(1,1) PRIMARY KEY,
+          LogTime DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+          Level NVARCHAR(20) NOT NULL,
+          FunctionName NVARCHAR(200) NOT NULL,
+          Args NVARCHAR(MAX) NULL,
+          Kwargs NVARCHAR(MAX) NULL,
+          Result NVARCHAR(MAX) NULL,
+          Exception NVARCHAR(MAX) NULL,
+          UserId INT NULL
+      );
+
+    create_table_users: |
+      CREATE TABLE Login.Users (
+        Id INT IDENTITY(1,1) PRIMARY KEY,
+        Username NVARCHAR(100) NOT NULL,
+        Email NVARCHAR(100) NOT NULL,
+        PasswordHash NVARCHAR(200) NOT NULL,
+        IsAdmin BIT NOT NULL DEFAULT 0
+      );
+
+    create_table_sessions: |
+      CREATE TABLE ChatLogs.Sessions (
+        SessionId UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+        Name NVARCHAR(200) NULL,
+        UserId INT NOT NULL
+          CONSTRAINT FK_Sessions_Users REFERENCES Login.Users(Id),
+        CreatedAt DATETIME2 DEFAULT SYSUTCDATETIME(),
+        ExpiresAt DATETIME2 NULL
+      );
+
+    create_table_messages: |
+      CREATE TABLE ChatLogs.Messages (
+        Id INT IDENTITY(1,1) PRIMARY KEY,
+        SessionId UNIQUEIDENTIFIER NOT NULL
+          CONSTRAINT FK_Messages_Sessions REFERENCES ChatLogs.Sessions(SessionId),
+        Role NVARCHAR(20) NOT NULL,
+        Message NVARCHAR(MAX) NOT NULL,
+        LogTime DATETIME2 DEFAULT SYSUTCDATETIME(),
+        MessageIndex INT NOT NULL,
+        ParentMessageId INT NULL
+          CONSTRAINT FK_Messages_Parent REFERENCES ChatLogs.Messages(Id)
+      );
+    
+    create_app_user: |
+      -- Create a contained database user for the app
+      IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'chatappuser')
+      BEGIN
+          CREATE USER chatappuser WITH PASSWORD = '{APP_USER_PASSWORD}';
+      END;
+
+      -- Grant execute rights on all stored procedures
+      GRANT EXECUTE TO chatappuser;
+
+  stored_procedures:
+    create_stored_procedure_insert_new_user: |
+      CREATE OR ALTER PROCEDURE Login.InsertNewUser
+        @Username NVARCHAR(100),
+        @Email NVARCHAR(100),
+        @PasswordHash NVARCHAR(200)
+      AS
+      BEGIN
+        SET NOCOUNT ON;
+
+        INSERT INTO Login.Users (Username, Email, PasswordHash)
+        VALUES (@Username, @Email, @PasswordHash);
+
+        -- return the new user id
+        SELECT SCOPE_IDENTITY() AS NewUserId;
+      END;
+    
+    create_stored_procedure_insert_message: |
+      CREATE OR ALTER PROCEDURE ChatLogs.InsertMessage
+        @SessionId UNIQUEIDENTIFIER,
+        @Role NVARCHAR(20),
+        @Message NVARCHAR(MAX),
+        @ParentMessageId INT = NULL
+      AS
+      BEGIN
+        SET NOCOUNT ON;
+        DECLARE @MessageIndex INT;
+        SELECT @MessageIndex = ISNULL(MAX(MessageIndex), 0) + 1
+        FROM ChatLogs.Messages
+        WHERE SessionId = @SessionId;
+
+        INSERT INTO ChatLogs.Messages (
+            SessionId, Role, Message, MessageIndex, ParentMessageId
+        )
+        VALUES (@SessionId, @Role, @Message, @MessageIndex, @ParentMessageId);
+
+        SELECT SCOPE_IDENTITY() AS NewMessageId;
+      END
+    
+    create_stored_procedure_insert_session: |
+      CREATE OR ALTER PROCEDURE ChatLogs.InsertSession
+        @UserId INT,
+        @ExpiresAt DATETIME2 = NULL
+      AS
+      BEGIN
+        SET NOCOUNT ON;
+
+        DECLARE @NewSessionId UNIQUEIDENTIFIER = NEWID();
+
+        INSERT INTO ChatLogs.Sessions (SessionId, UserId, CreatedAt, ExpiresAt)
+        VALUES (@NewSessionId, @UserId, SYSUTCDATETIME(), @ExpiresAt);
+
+        -- return the new session id
+        SELECT @NewSessionId AS NewSessionId;
+      END;
+
+    create_stored_procedure_list_sessions_by_user: |
+      CREATE OR ALTER PROCEDURE ChatLogs.ListSessionsByUser
+        @UserId INT
+      AS
+      BEGIN
+        SET NOCOUNT ON;
+
+        SELECT 
+            SessionId,
+            Name,
+            CreatedAt,
+            ExpiresAt
+        FROM ChatLogs.Sessions
+        WHERE UserId = @UserId
+        ORDER BY CreatedAt DESC;
+      END;
+
+    create_stored_procedure_list_messages_by_session: |
+      CREATE OR ALTER PROCEDURE ChatLogs.ListMessagesBySession
+        @SessionId UNIQUEIDENTIFIER
+      AS
+      BEGIN
+        SET NOCOUNT ON;
+
+        SELECT 
+            Id,
+            SessionId,
+            Role,
+            Message,
+            LogTime,
+            MessageIndex,
+            ParentMessageId
+        FROM ChatLogs.Messages
+        WHERE SessionId = @SessionId
+        ORDER BY MessageIndex ASC;
+      END;
+
+    create_stored_procedure_delete_session: |
+      CREATE OR ALTER PROCEDURE ChatLogs.DeleteSession
+        @SessionId UNIQUEIDENTIFIER
+      AS
+      BEGIN
+        SET NOCOUNT ON;
+
+        -- First delete messages belonging to this session
+        DELETE FROM ChatLogs.Messages
+        WHERE SessionId = @SessionId;
+
+        -- Then delete the session
+        DELETE FROM ChatLogs.Sessions
+        WHERE SessionId = @SessionId;
+      END;
+
+    create_stored_procedure_count_users: |
+      CREATE OR ALTER PROCEDURE Login.CountUsers
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+      
+          SELECT COUNT(*) AS Cnt
+          FROM Login.Users;
+      END;
+
+    create_stored_procedure_set_admin: |
+      CREATE OR ALTER PROCEDURE Login.SetAdmin
+          @UserId INT
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+      
+          UPDATE Login.Users
+          SET IsAdmin = 1
+          WHERE Id = @UserId;
+      END;
+    create_stored_procedure_is_admin: |
+      CREATE OR ALTER PROCEDURE Login.IsAdmin
+          @UserId INT
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+      
+          SELECT IsAdmin
+          FROM Login.Users
+          WHERE Id = @UserId;
+      END;
+
+    create_stored_procedure_get_username: |
+      CREATE OR ALTER PROCEDURE Login.GetUsername
+          @UserId INT
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+      
+          SELECT Username
+          FROM Login.Users
+          WHERE Id = @UserId;
+      END;
+
+    create_stored_procedure_get_username: |
+      CREATE PROCEDURE Login.ValidateUser
+          @Username NVARCHAR(100),
+          @PasswordHash NVARCHAR(256)
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+      
+          SELECT Id
+          FROM Login.Users
+          WHERE Username = @Username
+            AND PasswordHash = @PasswordHash;
+      END;
+    create_stored_procedure_set_session_name: |
+      CREATE PROCEDURE ChatLogs.SetSessionName
+          @SessionId UNIQUEIDENTIFIER,
+          @Name NVARCHAR(200)
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+      
+          UPDATE ChatLogs.Sessions
+          SET Name = @Name
+          WHERE SessionId = @SessionId;
+      END;
+    create_stored_procedure_get_session_name: |
+      CREATE OR ALTER PROCEDURE ChatLogs.GetSessionName
+        @SessionId UNIQUEIDENTIFIER
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+      
+          SELECT Name
+          FROM ChatLogs.Sessions
+          WHERE SessionId = @SessionId;
+      END;
+
+    create_stored_procedure_insert_log: |
+      CREATE OR ALTER PROCEDURE AppLogs.InsertLog
+          @Level NVARCHAR(20),
+          @FunctionName NVARCHAR(200),
+          @Args NVARCHAR(MAX) = NULL,
+          @Kwargs NVARCHAR(MAX) = NULL,
+          @Result NVARCHAR(MAX) = NULL,
+          @Exception NVARCHAR(MAX) = NULL,
+          @UserId INT = NULL
+      AS
+      BEGIN
+          SET NOCOUNT ON;
+
+          INSERT INTO AppLogs.Logs (LogTime, Level, FunctionName, Args, Kwargs, Result, Exception, UserId)
+          VALUES (SYSUTCDATETIME(), @Level, @FunctionName, @Args, @Kwargs, @Result, @Exception, @UserId);
+      END;
+
+
+
+    
+
+    
+
