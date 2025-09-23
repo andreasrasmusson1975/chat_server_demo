@@ -1,5 +1,4 @@
 [theme]
 base="dark"
 primaryColor = "#00FF41"      # Matrix green
-secondaryBackgroundColor = "#0D0208"  # deep green/black
-font = "monospace"
+font = "serif"
